@@ -65,15 +65,20 @@ class Kohana_Parse {
 		if ($response->status() < 200 || $response->status() >= 300)
 		{
 			// Check to see if session token has expired. If so, throw exception
+			$decoded = json_decode($response->body(), true);
 			if ($this->_config['master_key'] == NULL)
 			{
-				$decoded = json_decode($response->body());
-				if ($decoded->error == 'invalid session')
+				if ($decoded['error'] == 'invalid session')
 				{
 					$session = Session::instance();
 					$session->delete('sessionToken');
+					$session->delete('user');
 				}
 				throw new Parse_Exception_Invalid_Session();
+			}
+			if ($decoded['code'] == 155)
+			{
+				throw new Parse_Exception_Busy();
 			}
 			throw new Parse_Exception($response);
 		}
@@ -91,12 +96,13 @@ class Kohana_Parse {
 
 			$response = $this->_doRequest($request);
 
-			$response = json_decode($response->body());
+			$response = json_decode($response->body(), True);
 
-			$token = $response->sessionToken;
+			$token = $response['sessionToken'];
 
 			$session = Session::instance();
 			$session->set('sessionToken', $token);
+			$session->set('user', $response);
 
 			return True;
 		} catch (Exception $e) {}
@@ -108,30 +114,62 @@ class Kohana_Parse {
 	{
 		$session = Session::instance();
 		$session->delete('sessionToken');
+		$session->delete('user');
 	}
 
-	public function objectCreate()
+	public function objectCreate($class, $json)
 	{
-		
+		$request = $this->_getRequest("classes/$class");
+		$request->method('POST');
+		$request->body($json);
+
+		$response = $this->_doRequest($request);
+		$result = json_decode($response);
+		return $result->objectId;
 	}
 
-	public function objectGet()
+	public function objectGet($class, $objectid)
 	{
+		$request = $this->_getRequest("classes/$class/$objectid");
+		$request->method('GET');
 
+		$response = $this->_doRequest($request);
+		$result = json_decode($response, True);
+		return $result;
 	}
 
-	public function objectPut()
+	public function objectPut($class, $objectid, $json)
 	{
+		$request = $this->_getRequest("classes/$class/$objectid");
+		$request->method('PUT');
+		$request->body($json);
 
+		$response = $this->_doRequest($request);
+		$result = json_decode($response);
+		return $result->objectId;
 	}
 
-	public function objectQuery()
+	public function objectQuery($class, $query=NULL)
 	{
+		$request = $this->_getRequest("classes/$class");
+		$request->method('GET');
+		if ($query != NULL)
+		{
+			$request->query('where', $query);
+		}
 
+		$response = $this->_doRequest($request);
+		$result = json_decode($response, True);
+		return $result;
 	}
 
-	public function objectDelete()
+	public function objectDelete($class, $objectid)
 	{
+		$request = $this->_getRequest("classes/$class/$objectid");
+		$request->method('DELETE');
 
+		$response = $this->_doRequest($request);
+		$result = json_decode($response, True);
+		return True;
 	}
 }
