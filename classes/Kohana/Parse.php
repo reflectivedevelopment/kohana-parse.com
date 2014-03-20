@@ -86,6 +86,28 @@ class Kohana_Parse {
 		return $response;
 	}
 
+	public function signup($json)
+	{
+		$request = $this->_getRequest("users");
+		$request->method('POST');
+		$request->body($json);
+
+		$response = $this->_doRequest($request);
+		$result = json_decode($response, true);
+		return $result;
+	}
+	
+	public function passwordreset($email)
+	{
+		$request = $this->_getRequest("requestPasswordReset");
+		$request->method('POST');
+		$request->body(json_encode(array('email' => $email)));
+
+		$response = $this->_doRequest($request);
+		$result = json_decode($response, true);
+		return $result;
+	}
+
 	public function login($username, $password)
 	{
 		$request = $this->_getRequest("login");
