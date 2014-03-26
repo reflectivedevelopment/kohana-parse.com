@@ -4,8 +4,10 @@ class Kohana_Parse {
 
 	protected $_config = NULL;
 
-	public static function factory($config='default')
+	public static function instance($config='default')
 	{
+		if ($config == NULL || strlen($config) == 0)
+			$config = 'default';
 		return new Parse($config);
 	}
 
@@ -13,7 +15,9 @@ class Kohana_Parse {
 	{
 		$config = Kohana::$config->load('parse');
 		if ( ! array_key_exists($config_name, $config))
+		{
 			throw new Kohana_Exception('Invalid Config!');
+		}
 		$config = $config[$config_name];
 
 		if ( ! array_key_exists('application_id', $config)
@@ -177,7 +181,10 @@ class Kohana_Parse {
 		$request->method('GET');
 		if ($query != NULL)
 		{
-			$request->query('where', $query);
+			foreach ($query as $key => $value)
+			{
+				$request->query($key, $value);
+			}
 		}
 
 		$response = $this->_doRequest($request);
