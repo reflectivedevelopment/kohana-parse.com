@@ -172,7 +172,6 @@ class Kohana_Parse {
 
 		$response = $this->_doRequest($request);
 		$result = json_decode($response);
-		return $result->objectId;
 	}
 
 	public function objectQuery($class, $query=NULL)
