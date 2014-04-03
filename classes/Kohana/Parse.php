@@ -143,9 +143,35 @@ class Kohana_Parse {
 		$session->delete('user');
 	}
 
+	public function _getClassBase($class, $objectid=NULL)
+	{
+		if (strtolower($class) == 'user')
+		{
+			if ($objectid != NULL)
+			{
+				return "users/$objectid";
+			}
+			else
+			{
+				return 'users';
+			}
+		}
+		else
+		{
+			if ($objectid != NULL)
+			{
+				return "classes/$class/$objectid";
+			}
+			else
+			{
+				return "classes/$class";
+			}
+		}
+	}
+
 	public function objectCreate($class, $json)
 	{
-		$request = $this->_getRequest("classes/$class");
+		$request = $this->_getRequest($this->_getClassBase($class));
 		$request->method('POST');
 		$request->body($json);
 
@@ -156,7 +182,8 @@ class Kohana_Parse {
 
 	public function objectGet($class, $objectid)
 	{
-		$request = $this->_getRequest("classes/$class/$objectid");
+		$request = $this->_getRequest($this->_getClassBase($class, $objectid));
+
 		$request->method('GET');
 
 		$response = $this->_doRequest($request);
@@ -166,7 +193,8 @@ class Kohana_Parse {
 
 	public function objectPut($class, $objectid, $json)
 	{
-		$request = $this->_getRequest("classes/$class/$objectid");
+		$request = $this->_getRequest($this->_getClassBase($class, $objectid));
+
 		$request->method('PUT');
 		$request->body($json);
 
@@ -176,7 +204,8 @@ class Kohana_Parse {
 
 	public function objectQuery($class, $query=NULL)
 	{
-		$request = $this->_getRequest("classes/$class");
+		$request = $this->_getRequest($this->_getClassBase($class));
+
 		$request->method('GET');
 		if ($query != NULL)
 		{
@@ -193,7 +222,8 @@ class Kohana_Parse {
 
 	public function objectDelete($class, $objectid)
 	{
-		$request = $this->_getRequest("classes/$class/$objectid");
+		$request = $this->_getRequest($this->_getClassBase($class, $objectid));
+
 		$request->method('DELETE');
 
 		$response = $this->_doRequest($request);
